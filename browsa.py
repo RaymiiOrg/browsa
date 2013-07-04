@@ -11,10 +11,18 @@ except IndexError:
 
 urls = []
 
+page_request = urllib2.Request(page_url)
+fallback_request = urllib2.Request(fallback_url)
+ 
+page_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
+fallback_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
+page_request.add_header('Accept', 'text/plain')
+fallback_request.add_header('Accept', 'text/plain')
+  
 try:
-    page = urllib2.urlopen(page_url).read()
+    page = urllib2.urlopen(page_request).read()
 except Exception:
-    page = urllib2.urlopen(fallback_url).read()
+    page = urllib2.urlopen(fallback_request).read()
     print("---")
 soup = BeautifulSoup(page)
 for link in soup.find_all('a'):
@@ -29,8 +37,12 @@ if len(urls) == 0:
     print("----")
     urls.append(fallback_url)
 url = random.choice(urls)
+
 if url == page_url:
-    url = random.choice(urls)
+    sys.exit()
+if re.search("@", url) or re.search("#", url):
+    sys.exit()
+
 scriptname = sys.argv[0]
 
 command = scriptname + " '" + url + "' &"
