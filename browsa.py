@@ -13,7 +13,7 @@ except IndexError:
     sys.exit("Please provide an URL")
 
 urls = []
-non_wanted_urls = ['.pdf', '@', '#', '.js']
+non_wanted_urls = ['.pdf', '@', '#', '.js', '.jpg', '.png', '.gif']
 
 print(page_url)
 
@@ -29,9 +29,9 @@ fallback_request.add_header('Accept-Encoding', 'none')
 
 try:
     page = urllib2.urlopen(page_request).read()
-except Exception:
+except Exception as error:
     page = urllib2.urlopen(fallback_request).read()
-    print("---")
+    print("# Error in opening URL: %s" % error)
 
 soup = BeautifulSoup(page)
 
@@ -41,7 +41,7 @@ for link in soup.find_all('a'):
             urls.append(link.get('href'))
 
 if len(urls) == 0:
-    print("----")
+    print("# Error: No URLs in list.")
     urls.append(fallback_url)
 
 url = random.choice(urls)
