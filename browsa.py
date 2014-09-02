@@ -1,17 +1,27 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
-import sys, urllib2, os, re, random
+import sys, urllib2, os, re, random, time
 
-fallback_urls = [u"https://news.ycombinator.com/", u"http://news.google.com", u"http://raymii.org/s/tags", 
+fallback_urls = [u"https://news.ycombinator.com/", u"http://news.google.nl", u"http://raymii.org/s/tags", 
+                 u"http://www.nu.nl/", u"http://buienradar.nl/", u"http://www.marktplaats.nl/",
+                 u"http://www.bol.com/", u"http://www.ah.nl/", u"https://www.pinterest.com/",
+                 u"http://www.geenstijl.nl/", u"http://www.dumpert.nl/", u"http://www.ad.nl/",
+                 u"http://nos.nl/", u"http://www.funda.nl/", u"http://frontpage.fok.nl/",
+                 u"http://9gag.com/", u"http://www.nrc.nl/", u"http://www.zalando.nl/",
                  u"http://tweakers.net/nieuws", u"http://stackoverflow.com", u"http://reddit.com"]
+
+def log(line):
+    print(line)
+    with open("browsa.log", "a+") as log_file:
+        log_file.write(line)
 
 def get_url(page_url) :
 
     global fallback_urls
     fallback_url = random.choice(fallback_urls)
 
-    print("URL: " + page_url)
+    log("Downloading URL: %s" % page_url)
     
     page_request = urllib2.Request(page_url)
     fallback_request = urllib2.Request(fallback_url)
@@ -33,13 +43,13 @@ def get_url(page_url) :
     except Exception as error:
         try:
             page = urllib2.urlopen(fallback_request).read()
-            print("# Error in opening URL: %s. Falling back to fallback url: %s" % (error, fallback_url))
+            log("# Error in opening URL: %s. Falling back to fallback url: %s" % (error, fallback_url))
         except Exception as error:
-            print("# Fallback URL %s also failed with error: %s. Giving up." % (fallback_url, error))
-            print("# Fallback URL's collected: ")
+            log("# Fallback URL %s also failed with error: %s. Giving up." % (fallback_url, error))
+            log("# Fallback URL's collected: ")
             for url in fallback_urls:
-                print("# %s" % url)
-            print("")
+                log("# %s" % url)
+            log("")
             sys.exit(1)
 
     soup = BeautifulSoup(page)
@@ -51,7 +61,7 @@ def get_all_links_from_soup(soup):
         if link.get('href'):
             if re.search("htt(p|ps)\:\/\/", link.get('href').encode('utf-8')):
                 urls.append(link.get('href'))
-    print("%i URL's on page" % len(urls))
+    log("URL's on page: %s" % len(urls))
     return urls
 
 def choose_new_url(urls, previous_url):
@@ -60,29 +70,29 @@ def choose_new_url(urls, previous_url):
     non_wanted_urls = ['.pdf', '@', '#', '.js', '.jpg', '.png', '.gif']
     
     if len(urls) == 0:
-        print("# Error: No URLs in list.")
+        log("# Error: No URLs in list.")
         urls.append(fallback_url)
      
-    url = random.choice(urls)
-    print("Contemplating random URL: %s" % url) 
+    new_url = random.choice(urls)
+    log("New URL: %s" % new_url) 
     
-    if url == previous_url:
-        print("# New URL Would be the same as previous URL")
+    if new_url == previous_url:
+        log("# New URL Would be the same as previous URL")
         if not fallback_url == previous_url:
-            print("# Choosing a fallback URL.")
-            url = fallback_url
+            log("# Choosing a fallback URL.")
+            new_url = fallback_url
         else:
-            print("# Previous URL is also the fallback URL.")
-            url = fallback_url
+            log("# Previous URL is also the fallback URL.")
+            new_url = fallback_url
 
     
     for item in non_wanted_urls:
-        if re.search(item, url):
-            print("# Part of the new URL is on the non wanted list. Choosing fallback URL.")
-            url = fallback_url
+        match = re.search(item, new_url)
+        if match:
+            log("# Part of the new URL is on the non wanted list: %s. Choosing fallback URL." % match.group())
+            new_url = fallback_url
 
-    print("New URL: %s" % url) 
-    return url
+    return new_url
 
 
 def launch_myself_in_background(url):
@@ -113,7 +123,8 @@ def main():
 
     while True:
         page_url = the_magic(page_url)
-    print("")
+    log("")
+        time.sleep(5)
     
 if __name__ == "__main__":
     main()
