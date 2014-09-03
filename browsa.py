@@ -11,17 +11,19 @@ fallback_urls = [u"https://news.ycombinator.com/", u"http://news.google.nl", u"h
                  u"http://9gag.com/", u"http://www.nrc.nl/", u"http://www.zalando.nl/",
                  u"http://tweakers.net/nieuws", u"http://stackoverflow.com", u"http://reddit.com"]
 
+counter = 0
+
 def log(line):
     print(line)
     with open("browsa.log", "a+") as log_file:
-        log_file.write(line)
+        log_file.write("%s \n" % str(line))
 
 def get_url(page_url) :
 
     global fallback_urls
     fallback_url = random.choice(fallback_urls)
 
-    log("Downloading URL: %s" % page_url)
+    log("# Info: Downloading URL: %s" % page_url)
     
     page_request = urllib2.Request(page_url)
     fallback_request = urllib2.Request(fallback_url)
@@ -38,17 +40,17 @@ def get_url(page_url) :
     fallback_request.add_header('Connection', 'keep-alive')
     
     try:
-        page = urllib2.urlopen(page_request).read()
+        page = urllib2.urlopen(page_request, timeout=5).read()
         fallback_urls.append(page_url)
     except Exception as error:
         try:
-            page = urllib2.urlopen(fallback_request).read()
-            log("# Error in opening URL: %s. Falling back to fallback url: %s" % (error, fallback_url))
+            page = urllib2.urlopen(fallback_request, timeout=5).read()
+            log("# Error: opening URL: %s failed. Falling back to fallback url: %s" % (error, fallback_url))
         except Exception as error:
-            log("# Fallback URL %s also failed with error: %s. Giving up." % (fallback_url, error))
-            log("# Fallback URL's collected: ")
+            log("# Error: Fallback URL %s also failed with error: %s. Giving up." % (fallback_url, error))
+            log("# Error: Fallback URL's collected: ")
             for url in fallback_urls:
-                log("# %s" % url)
+                log("# Error: %s" % url)
             log("")
             sys.exit(1)
 
@@ -61,7 +63,7 @@ def get_all_links_from_soup(soup):
         if link.get('href'):
             if re.search("htt(p|ps)\:\/\/", link.get('href').encode('utf-8')):
                 urls.append(link.get('href'))
-    log("URL's on page: %s" % len(urls))
+    log("# Info: URL's on page: %s" % len(urls))
     return urls
 
 def choose_new_url(urls, previous_url):
@@ -74,26 +76,25 @@ def choose_new_url(urls, previous_url):
         urls.append(fallback_url)
      
     new_url = random.choice(urls)
-    log("New URL: %s" % new_url) 
+    log("# Info: New URL: %s" % new_url) 
     
     if new_url == previous_url:
-        log("# New URL Would be the same as previous URL")
+        log("# Error: New URL Would be the same as previous URL")
         if not fallback_url == previous_url:
-            log("# Choosing a fallback URL.")
+            log("# Error: Choosing a fallback URL.")
             new_url = fallback_url
         else:
-            log("# Previous URL is also the fallback URL.")
+            log("# Error: Previous URL is also the fallback URL.")
             new_url = fallback_url
 
     
     for item in non_wanted_urls:
         match = re.search(item, new_url)
         if match:
-            log("# Part of the new URL is on the non wanted list: %s. Choosing fallback URL." % match.group())
+            log("# Error: Part of the new URL is on the non wanted list: %s. Choosing fallback URL." % match.group())
             new_url = fallback_url
 
     return new_url
-
 
 def launch_myself_in_background(url):
     scriptname = u''.join(sys.argv[0])
@@ -110,6 +111,9 @@ def launch_myself_in_background(url):
     sys.exit()
 
 def the_magic(url):
+    global counter
+    counter += 1
+    log("# Info: Count %i" % counter)
     soup = get_url(url)
     urls = get_all_links_from_soup(soup)
     new_url = choose_new_url(urls, url)
@@ -123,8 +127,8 @@ def main():
 
     while True:
         page_url = the_magic(page_url)
+    # time.sleep(5)
     log("")
-        time.sleep(5)
     
 if __name__ == "__main__":
     main()
