@@ -3,15 +3,16 @@
 from bs4 import BeautifulSoup
 import sys, urllib2, os, re, random, time
 
-fallback_urls = [u"https://news.ycombinator.com/", u"http://news.google.nl", u"http://raymii.org/s/tags", 
-                 u"http://www.nu.nl/", u"http://buienradar.nl/", u"http://www.marktplaats.nl/",
-                 u"http://www.bol.com/", u"http://www.ah.nl/", u"https://www.pinterest.com/",
-                 u"http://www.geenstijl.nl/", u"http://www.dumpert.nl/", u"http://www.ad.nl/",
-                 u"http://nos.nl/", u"http://www.funda.nl/", u"http://frontpage.fok.nl/",
-                 u"http://9gag.com/", u"http://www.nrc.nl/", u"http://www.zalando.nl/",
-                 u"http://tweakers.net/nieuws", u"http://stackoverflow.com", u"http://reddit.com"]
+fallback_urls = [u"http://news.google.com", u"https://news.ycombinator.com", u"http://raymii.org/s/everything.html"]
+previous_urls = [u""]
 
 counter = 0
+
+def dedup_list(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if not (x in seen or seen_add(x))]
+
 
 def log(line):
     print(line)
@@ -68,6 +69,11 @@ def get_all_links_from_soup(soup):
 
 def choose_new_url(urls, previous_url):
     global fallback_urls
+    global previous_urls
+    dedup_list(fallback_urls)
+    dedup_list(previous_urls)
+    previous_urls = previous_urls[:5]
+    previous_urls.append(previous_url)
     fallback_url = random.choice(fallback_urls)
     non_wanted_urls = ['.pdf', '@', '#', '.js', '.jpg', '.png', '.gif']
     
@@ -78,9 +84,9 @@ def choose_new_url(urls, previous_url):
     new_url = random.choice(urls)
     log("# Info: New URL: %s" % new_url) 
     
-    if new_url == previous_url:
+    if new_url in previous_urls[:5]:
         log("# Error: New URL Would be the same as previous URL")
-        if not fallback_url == previous_url:
+        if not fallback_url in previous_urls[:5]:
             log("# Error: Choosing a fallback URL.")
             new_url = fallback_url
         else:
@@ -94,6 +100,7 @@ def choose_new_url(urls, previous_url):
             log("# Error: Part of the new URL is on the non wanted list: %s. Choosing fallback URL." % match.group())
             new_url = fallback_url
 
+    previous_urls.append(new_url)
     return new_url
 
 def launch_myself_in_background(url):
