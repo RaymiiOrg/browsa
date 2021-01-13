@@ -13,7 +13,7 @@ Little Python script which browses random websites, to make it harder for spying
 
 ## Requirements
 
-- Python 2.7
+- Python 3
 - Beautifulsoup 4
 
 ## Pitfalls
