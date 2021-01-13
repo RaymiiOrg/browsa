@@ -61,12 +61,13 @@ def get_url(page_url) :
     soup = BeautifulSoup(page, features="lxml")
     return soup
     
-def get_all_links_from_soup(soup):
+def get_all_links_from_soup(url, soup):
     urls = []
     for link in soup.find_all('a'):
         if link.get('href'):
-            if re.search("htt(p|ps)\:\/\/", link.get('href').encode('utf-8')):
-                urls.append(link.get('href'))
+            tempurl = urllib.parse.urljoin(url,link.get('href'))
+            if re.search("htt(p|ps)\:\/\/", tempurl):
+                urls.append(tempurl)
     log("# Info: URL's on page: %s" % len(urls))
     return urls
 
@@ -124,7 +125,7 @@ def the_magic(url):
     counter += 1
     log("# Info: Count %i" % counter)
     soup = get_url(url)
-    urls = get_all_links_from_soup(soup)
+    urls = get_all_links_from_soup(url, soup)
     new_url = choose_new_url(urls, url)
     return new_url
 
