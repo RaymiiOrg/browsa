@@ -1,10 +1,12 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
+# author: Remy van Elst - https://raymii.org
+# license: gnu agpl v3
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
-import sys, urllib2, os, re, random, time
+import sys, urllib.request, urllib.error, urllib.parse, os, re, random, time
 
-fallback_urls = [u"http://news.google.com", u"https://news.ycombinator.com", u"http://raymii.org/s/everything.html"]
-previous_urls = [u""]
+fallback_urls = ["http://news.google.com", "https://hackurls.com/", "https://nu.nl", "http://raymii.org/s/everything.html"]
+previous_urls = [""]
 
 counter = 0
 
@@ -26,8 +28,9 @@ def get_url(page_url) :
 
     log("# Info: Downloading URL: %s" % page_url)
     
-    page_request = urllib2.Request(page_url)
-    fallback_request = urllib2.Request(fallback_url)
+    page_request = urllib.request.Request(page_url)
+    fallback_request = urllib.request.Request(fallback_url)
+
      
     page_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
     fallback_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
@@ -41,12 +44,12 @@ def get_url(page_url) :
     fallback_request.add_header('Connection', 'keep-alive')
     
     try:
-        page = urllib2.urlopen(page_request, timeout=5).read()
+        page = urllib.request.urlopen(page_request, timeout=5).read()
         fallback_urls.append(page_url)
     except Exception as error:
         try:
-            page = urllib2.urlopen(fallback_request, timeout=5).read()
-            log("# Error: opening URL: %s failed. Falling back to fallback url: %s" % (error, fallback_url))
+            page = urllib.request.urlopen(fallback_request, timeout=5).read()
+            log("# Error: opening URL: %s failed. Falling back to fallback url: %s" % (error, fallback_url)) 
         except Exception as error:
             log("# Error: Fallback URL %s also failed with error: %s. Giving up." % (fallback_url, error))
             log("# Error: Fallback URL's collected: ")
@@ -55,7 +58,7 @@ def get_url(page_url) :
             log("")
             sys.exit(1)
 
-    soup = BeautifulSoup(page)
+    soup = BeautifulSoup(page, features="lxml")
     return soup
     
 def get_all_links_from_soup(soup):
@@ -104,8 +107,7 @@ def choose_new_url(urls, previous_url):
     return new_url
 
 def launch_myself_in_background(url):
-    scriptname = u''.join(sys.argv[0])
-    
+    scriptname = ''.join(sys.argv[0])
     command = scriptname + " '" + url + "' &"
     
     try:
@@ -128,7 +130,7 @@ def the_magic(url):
 
 def main():
     try:
-        page_url = u"".join(sys.argv[1])
+        page_url = "".join(sys.argv[1])
     except IndexError:
         sys.exit("Please provide an URL")
 
