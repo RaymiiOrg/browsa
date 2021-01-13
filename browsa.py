@@ -79,7 +79,7 @@ def choose_new_url(urls, previous_url):
     previous_urls = previous_urls[:5]
     previous_urls.append(previous_url)
     fallback_url = random.choice(fallback_urls)
-    non_wanted_urls = ['.pdf', '@', '#', '.js', '.jpg', '.png', '.gif']
+    non_wanted_urls = ['.pdf', '@', '.js', '.jpg', '.png', '.gif', '.xml', '.rss', '.atom']
     
     if len(urls) == 0:
         log("# Error: No URLs in list.")
@@ -95,14 +95,14 @@ def choose_new_url(urls, previous_url):
             new_url = fallback_url
         else:
             log("# Error: Previous URL is also the fallback URL.")
-            new_url = fallback_url
+            new_url = random.choice(fallback_urls)
 
     
     for item in non_wanted_urls:
         match = re.search(item, new_url)
         if match:
             log("# Error: Part of the new URL is on the non wanted list: %s. Choosing fallback URL." % match.group())
-            new_url = fallback_url
+            new_url = random.choice(fallback_urls)
 
     previous_urls.append(new_url)
     return new_url
@@ -137,7 +137,7 @@ def main():
 
     while True:
         page_url = the_magic(page_url)
-    # time.sleep(5)
+        time.sleep(1)
     log("")
     
 if __name__ == "__main__":
