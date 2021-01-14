@@ -5,7 +5,7 @@
 from bs4 import BeautifulSoup
 import sys, urllib.request, urllib.error, urllib.parse, os, re, random, time
 
-fallback_urls = ["http://news.google.com", "https://hackurls.com/", "https://nu.nl", "http://raymii.org/s/everything.html"]
+fallback_urls = ["http://news.google.com", "https://hackurls.com/", "https://en.wikipedia.org/wiki/Special:Random", "http://raymii.org/s/everything.html"]
 previous_urls = [""]
 
 counter = 0
@@ -31,20 +31,17 @@ def get_url(page_url) :
     page_request = urllib.request.Request(page_url)
     fallback_request = urllib.request.Request(fallback_url)
 
-     
     page_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
     fallback_request.add_header('User-agent', 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)')
     page_request.add_header('Accept', 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
     fallback_request.add_header('Accept', 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
     page_request.add_header('Accept-Encoding', 'none')
     fallback_request.add_header('Accept-Encoding', 'none')
-    page_request.add_header('DNT', '1')
-    fallback_request.add_header('DNT', '1')
     page_request.add_header('Connection', 'keep-alive')
     fallback_request.add_header('Connection', 'keep-alive')
     
     try:
-        page = urllib.request.urlopen(page_request, timeout=5).read()
+        page = urllib.request.urlopen(page_request, timeout=3).read()
         fallback_urls.append(page_url)
     except Exception as error:
         try:
@@ -79,7 +76,7 @@ def choose_new_url(urls, previous_url):
     previous_urls = previous_urls[:5]
     previous_urls.append(previous_url)
     fallback_url = random.choice(fallback_urls)
-    non_wanted_urls = ['.pdf', '@', '.js', '.jpg', '.png', '.gif', '.xml', '.rss', '.atom']
+    non_wanted_urls = ['.pdf', '@', '.js', '.jpg', '.png', '.tar', '.zip', '.rar', '.gif', '.xml', '.rss', '.atom']
     
     if len(urls) == 0:
         log("# Error: No URLs in list.")
@@ -89,14 +86,8 @@ def choose_new_url(urls, previous_url):
     log("# Info: New URL: %s" % new_url) 
     
     if new_url in previous_urls[:5]:
-        log("# Error: New URL Would be the same as previous URL")
-        if not fallback_url in previous_urls[:5]:
-            log("# Error: Choosing a fallback URL.")
-            new_url = fallback_url
-        else:
-            log("# Error: Previous URL is also the fallback URL.")
-            new_url = random.choice(fallback_urls)
-
+        log("# Error: New URL Would be the same as previous URL. Choosing a fallback URL.")
+        new_url = random.choice(fallback_urls)
     
     for item in non_wanted_urls:
         match = re.search(item, new_url)
@@ -137,7 +128,7 @@ def main():
 
     while True:
         page_url = the_magic(page_url)
-        time.sleep(1)
+        time.sleep(random.randint(1, 5))
     log("")
     
 if __name__ == "__main__":
